@@ -1,4 +1,4 @@
-# collaborators on this part: Jaafar Saleh, Ahamed Muzummil and Abdelhak Yakoubi
+# The collaborators on this part: Jaafar Saleh, Ahamed Muzummil and Abdelhak Yakoubi
 
 
 import requests
