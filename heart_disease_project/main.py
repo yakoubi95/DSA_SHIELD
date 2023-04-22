@@ -1,4 +1,4 @@
-# collaborators on this part: Aicha Moumini and Gayathri
+# The collaborators on this part: Aicha Moumini and Gayathri
 
 
 import psycopg2 as psycopg2
