@@ -8,6 +8,7 @@ SHIELD
 - Ahamed Mohideen Naufal Sadiq
 - Abdelhak Yakoubi
 - Gayathri Anadhasayanan
+
 **Chosen Use Case:**
 Heart Disease Prediction
 
