@@ -72,7 +72,7 @@ def prediction_page():
             'age': age,
             'sex': sex,
             'chest_pain_type': chest_pain_type,
-            'prediction_date': datetime.datetime.now().strftime('%Y/%m/%d'),
+            'prediction_date': datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
             'prediction_source': 'Webapp'
         }
         insert_prediction_data(prediction_data)
@@ -89,17 +89,13 @@ def prediction_page():
         df = pd.read_csv(file)
         # Make API request to model service with feature values
         data = df.to_dict('records')
-        # Call make_predictions() function to get fixed prediction value of 42 for each prediction
+        # Call make_predictions() function to get predictions for each record
         results = [make_predictions(d) for d in data]
+        # Combine input features and predictions into a DataFrame
+        output_df = pd.DataFrame(data)
+        output_df['Prediction'] = results
         # Display prediction results
-        for idx, r in enumerate(results):
-            st.write(f"Prediction {idx+1}: {r}")
-            st.write(f"Input Features {idx+1}: ")
-            st.write("Sex: ", data[idx]['Sex'])
-            st.write("Age: ", data[idx]['Age'])
-            st.write("Chest pain type: ", data[idx]['Chest pain type'])
-
-
+        st.dataframe(output_df)
 
 
 # Past predictions display webpage

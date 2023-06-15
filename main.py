@@ -1,85 +1,96 @@
-from fastapi import FastAPI, HTTPException, status, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+import psycopg2 as psycopg2
+from fastapi import FastAPI
+from fastapi.exceptions import HTTPException
+from pydantic import BaseModel
+from datetime import date, datetime
+from typing import List
 
-# Define the base model
-Base = declarative_base()
+ 
 
-# Define the prediction data model
-class Prediction(Base):
-    __tablename__ = 'predictions'
-    id = Column(Integer, primary_key=True)
-    prediction = Column(Integer)
-    age = Column(Integer)
-    sex = Column(String)
-    chest_pain_type = Column(Integer)
-    prediction_date = Column(DateTime, default=datetime.utcnow)
-    prediction_source = Column(String)
+# Create a connection to the PostgreSQL db 
+conn = psycopg2.connect(
+    dbname='project',
+    user='postgres',
+    password='test',
+    host='localhost',
+    port='5432'
+)
+cursor = conn.cursor()
 
-# Create a database connection
-DATABASE_URL = 'postgresql://postgres:test@localhost:5432/project'  
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+ 
 
-# Create the table in the database
-Base.metadata.create_all(bind=engine)
-
-# Initialize FastAPI app
+# Create an instance
 app = FastAPI()
 
+ 
 
-# Endpoint for making model predictions
-@app.post('/predict')
-def predict(request: Request, prediction_source: str = None):
+# Create a model to represent the input data for the prediction
+class predictionsData(BaseModel):
+    age: int
+    sex: int
+    chest_pain_type: int
+
+ 
+
+# handling the insertion of new prediction into the database
+def insert_prediction(prediction_date, used_features, prediction_result, prediction_source):
+    sql = """
+        INSERT INTO predictions (prediction_date, used_features, prediction_result, prediction_source)
+        VALUES (%s, %s, %s, %s)
+    """
+    cursor.execute(sql, (prediction_date, used_features, prediction_result, prediction_source))
+    conn.commit()
+
+ 
+
+def make_predictions(my_features: predictionsData):
+    return 42
+
+ 
+
+# Define a FastAPI endpoint to handle the prediction request
+@app.post("/predict")
+async def predict(data: predictionsData):
+    # Make prediction using input data and store it in the db
     try:
-        # Get feature values from request
-        age = request.json()['Age']
-        sex = request.json()['Sex']
-        chest_pain_type = request.json()['Chest Pain Type']
-        
-
-        prediction = 42
-        
-        # Save prediction to database
-        db = SessionLocal()
-        new_prediction = Prediction(prediction=prediction, age=age, sex=sex, chest_pain_type=chest_pain_type, prediction_source=prediction_source)
-        db.add(new_prediction)
-        db.commit()
-        db.refresh(new_prediction)
-        db.close()
-        
-        return JSONResponse(content={'Prediction': prediction}, status_code=status.HTTP_200_OK)
+        prediction_result = make_predictions(data)
+        prediction_date = datetime.now()
+        used_features = str(data.dict())
+        prediction_source = 'webapp'
+        insert_prediction(prediction_date, used_features, prediction_result, prediction_source)
+        return {"Features": used_features, "prediction": prediction_result}
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error making prediction: {}'.format(str(e)))
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint for getting past predictions
-@app.get('/past-predictions')
-def get_past_predictions(start_date: str, end_date: str, prediction_source: str):
+ 
+
+# Define a function to retrieve past predictions from the database
+def get_past_predictions(start_date, end_date, prediction_source):
+    sql = """
+        SELECT prediction_date, used_features, prediction_result
+        FROM predictions
+        WHERE prediction_date BETWEEN %s AND %s
+        AND (%s = 'all' OR prediction_source = %s)
+    """
+    cursor.execute(sql, (start_date, end_date, prediction_source))
+    rows = cursor.fetchall()
+    past_predictions = [
+        {
+            "prediction_date": row[0].strftime("%Y-%m-%d %H:%M:%S"),
+            "used_features": row[1],
+            "prediction": row[2]
+        } for row in rows
+    ]
+    return past_predictions
+
+ 
+
+# Define a FastAPI endpoint to retrieve past predictions from the database
+@app.get("/past-predictions")
+async def past_predictions(start_date: date, end_date: date, prediction_source: str = 'all'):
+# Retrieve past predictions from the database and return them as a JSON response
     try:
-        # Convert date strings to datetime objects
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        
-        # Query past predictions from database
-        db = SessionLocal()
-        past_predictions = db.query(Prediction).filter(Prediction.prediction_date.between(start_date, end_date), Prediction.prediction_source == prediction_source).all()
-        db.close()
-        
-        # Convert past predictions to dictionary
-        past_predictions_dict = []
-        for prediction in past_predictions:
-            past_prediction_dict = {
-                'Prediction': prediction.prediction,
-                'Age': prediction.age,
-                'Sex': prediction.sex,
-                'Chest Pain Type': prediction.chest_pain_type,
-                'Prediction Date': prediction.prediction_date
-            }
-            past_predictions_dict.append(past_prediction_dict)
-        
-        return JSONResponse(content={'Past Predictions': past_predictions_dict}, status_code=status.HTTP_200_OK)
+        past_predictions = get_past_predictions(start_date, end_date, prediction_source)
+        return past_predictions
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error getting past predictions: {}'.format(str(e)))
+        raise HTTPException(status_code=500, detail=str(e))
