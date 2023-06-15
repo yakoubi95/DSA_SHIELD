@@ -1,0 +1,12 @@
+requests==2.28.1
+streamlit==1.14.1
+pandas==1.5.1
+numpy==1.23.4
+psycopg2==2.9.5
+pydantic==1.10.2
+fastapi==0.87.0
+uvicorn==0.22.0
+streamlit-option-menu==0.3.2
+lightgbm==3.3.3
+pandas==2.0.2
+

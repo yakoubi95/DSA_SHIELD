@@ -1,11 +1,12 @@
+# The collaborators on this part: Aicha Moumini and Gayathri
+
+
 import psycopg2 as psycopg2
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import List
-
- 
 
 # Create a connection to the PostgreSQL db 
 conn = psycopg2.connect(
@@ -17,20 +18,14 @@ conn = psycopg2.connect(
 )
 cursor = conn.cursor()
 
- 
-
 # Create an instance
 app = FastAPI()
-
- 
 
 # Create a model to represent the input data for the prediction
 class predictionsData(BaseModel):
     age: int
     sex: int
     chest_pain_type: int
-
- 
 
 # handling the insertion of new prediction into the database
 def insert_prediction(prediction_date, used_features, prediction_result, prediction_source):
@@ -41,12 +36,8 @@ def insert_prediction(prediction_date, used_features, prediction_result, predict
     cursor.execute(sql, (prediction_date, used_features, prediction_result, prediction_source))
     conn.commit()
 
- 
-
 def make_predictions(my_features: predictionsData):
     return 42
-
- 
 
 # Define a FastAPI endpoint to handle the prediction request
 @app.post("/predict")
@@ -61,8 +52,6 @@ async def predict(data: predictionsData):
         return {"Features": used_features, "prediction": prediction_result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
- 
 
 # Define a function to retrieve past predictions from the database
 def get_past_predictions(start_date, end_date, prediction_source):
@@ -82,8 +71,6 @@ def get_past_predictions(start_date, end_date, prediction_source):
         } for row in rows
     ]
     return past_predictions
-
- 
 
 # Define a FastAPI endpoint to retrieve past predictions from the database
 @app.get("/past-predictions")
