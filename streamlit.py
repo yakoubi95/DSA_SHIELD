@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import streamlit as st
 import requests
 import pandas as pd
@@ -116,6 +117,8 @@ def past_predictions_page():
 if __name__ == "__main__":
     main()
 =======
+=======
+>>>>>>> origin/main
 import requests
 import streamlit as st
 import pandas as pd
@@ -292,4 +295,7 @@ def main():
 
 if __name__ == "__main__":
      main()
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main

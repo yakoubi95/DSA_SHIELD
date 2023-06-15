@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import joblib
 import numpy as np
 import psycopg2
@@ -14,6 +15,8 @@ model = joblib.load(open("models/model.pkl", "rb"))
 
 # Create a connection to the PostgreSQL database
 =======
+=======
+>>>>>>> origin/main
 import psycopg2 as psycopg2
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
@@ -24,6 +27,9 @@ from typing import List
  
 
 # Create a connection to the PostgreSQL db 
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 conn = psycopg2.connect(
     dbname='project',
@@ -32,6 +38,7 @@ conn = psycopg2.connect(
     host='localhost',
     port='5432'
 )
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 class PredictionRequest(BaseModel):
@@ -126,6 +133,8 @@ def get_past_predictions(start_date: str, end_date: str, prediction_source: str)
 
     return {"past_predictions": past_predictions}
 =======
+=======
+>>>>>>> origin/main
 cursor = conn.cursor()
 
  
@@ -204,5 +213,9 @@ async def past_predictions(start_date: date, end_date: date, prediction_source: 
         past_predictions = get_past_predictions(start_date, end_date, prediction_source)
         return past_predictions
     except Exception as e:
+<<<<<<< HEAD
+        raise HTTPException(status_code=500, detail=str(e))
+>>>>>>> origin/main
+=======
         raise HTTPException(status_code=500, detail=str(e))
 >>>>>>> origin/main
